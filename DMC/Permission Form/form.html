@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <form id="bannerForm">
+        <h3>Submit Banner Form</h3>
+        <input id="applicantName" placeholder="Applicant Name" required />
+        <input id="contactNumber" placeholder="Contact Number" required />
+        <input id="bannerLocation" placeholder="Banner Location" required />
+        <input id="bannerSize" placeholder="Banner Size" required />
+        <input id="startDate" placeholder="Start Date" type="date" required />
+        <input id="endDate" placeholder="End Date" type="date" required />
+        <input id="ratePerDay" type="number" placeholder="Rate Per Day" value="100"required />
+        <button type="submit">Submit Form</button>
+    </form>
+
+    <div id="paymentSection" style="display:none;">
+        <p>Total Payment: <span id="totalPayment"></span></p>
+        <button id="payNow">Pay Now</button>
+        <button id="generateQR">Generate QR Code</button>
+    </div>
+
+    <script>
+        const form = document.getElementById('bannerForm');
+        const paymentSection = document.getElementById('paymentSection');
+        const totalPaymentDisplay = document.getElementById('totalPayment');
+
+        let formId = null;
+
+        // Submit Form Button
+        document.getElementById('submitForm').addEventListener('click', () => {
+            const formData = {
+                applicantName: form.applicantName.value,
+                contactNumber: form.contactNumber.value,
+                bannerLocation: form.bannerLocation.value,
+                bannerSize: form.bannerSize.value,
+                startDate: form.startDate.value,
+                endDate: form.endDate.value,
+                ratePerDay: parseFloat(form.ratePerDay.value),
+            };
+
+            fetch('http://localhost:3000/submit-form', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id) {
+                        formId = data.id; // Store form ID for further actions
+                        totalPaymentDisplay.textContent = data.totalPayment;
+                        paymentSection.style.display = 'block'; // Show payment section
+                        alert('Form submitted successfully!');
+                    } else {
+                        alert('Failed to submit form.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+        });
+
+        // Pay Now Button
+        document.getElementById('payNow').addEventListener('click', () => {
+            if (!formId) {
+                alert('Form submission is required before payment.');
+                return;
+            }
+
+            fetch('http://localhost:3000/make-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: formId }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+
+                        // Optional: Generate QR Code after successful payment
+                        if (data.message.includes('Payment successful')) {
+                            window.location.href = `http://localhost:3000/generate-qr/${formId}`;
+                        }
+                    } else {
+                        alert('Payment failed.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during payment.');
+                });
+        });
+    </script>
+    <script src="script.js"></script>
+    <script src="submit.js"></script>
+
+    </body>
+</html>

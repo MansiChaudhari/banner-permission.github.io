@@ -1,0 +1,119 @@
+/* General Reset */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    background-image: url(/images/DMC\ image.jfif);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100%;
+}
+
+/* Form Container */
+form {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+form h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Input Fields */
+form input[type="text"],
+form input[type="number"],
+form input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+#applicantName,#contactNumber{
+    width: 210px;
+    margin-right: 30px;
+    margin-bottom: 10px;
+}
+#bannerLocation,#bannerSize{
+    width: 210px;
+    margin-right:30px;
+    margin-bottom: 10px;
+}
+
+/* Buttons */
+form button {
+    width: 100%;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #218838;
+}
+
+/* Payment Section */
+#paymentSection {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#paymentSection p {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+#paymentSection button {
+    margin: 10px 5px;
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#paymentSection button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    form, #paymentSection {
+        width: 90%;
+        margin: 20px auto;
+    }
+
+    form h3 {
+        font-size: 20px;
+    }
+
+    form button, #paymentSection button {
+        font-size: 14px;
+    }
+}

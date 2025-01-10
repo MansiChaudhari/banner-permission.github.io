@@ -1,0 +1,1475 @@
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const cors = require("cors");
+// const mysql = require("mysql2");
+// const QRCode = require("qrcode");
+// const fs = require("fs");
+// const path = require("path");
+// const app = express();
+// const PORT = 3000;
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json());
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",           // Replace with your MySQL username
+//     password: "Mansi@26",   // Replace with your MySQL password
+//     database: "bannerDB",   // Replace with your database name
+// });
+
+// // Connect to MySQL
+// db.connect(err => {
+//     if (err) {
+//         console.error("Database connection failed:", err.message);
+//         return;
+//     }
+//     console.log("Connected to MySQL database.");
+// });
+
+// // Directory to store QR code images
+// const qrCodeDir = path.join(__dirname, "qrcodes");
+// if (!fs.existsSync(qrCodeDir)) {
+//     try {
+//         fs.mkdirSync(qrCodeDir, { recursive: true });
+//         console.log("Directory 'qrcodes' created successfully.");
+//     } catch (error) {
+//         console.error("Error creating directory:", error);
+//     }
+// } else {
+//     console.log("Directory 'qrcodes' already exists.");
+// }
+
+// app.post("/submit-form", async (req, res) => {
+//     console.log("Form Data Received:", req.body);
+
+//     const {
+//         applicantName,
+//         contactNumber,
+//         bannerLocation,
+//         bannerSize,
+//         startDate,
+//         endDate,
+//         ratePerDay,
+//     } = req.body;
+
+   
+//     // // Validate Input
+//     // if (!startDate || !endDate || !ratePerDay) {
+//     //     return res.status(400).json({ message: "Invalid data provided" });
+//     // }
+
+//     // const start = new Date(startDate);
+//     // const end = new Date(endDate);
+
+//     // // Validate Date Order
+//     // if (isNaN(start) || isNaN(end)) {
+//     //     return res.status(400).json({ message: "Invalid date format" });
+//     // }
+//     // if (start > end) {
+//     //     return res.status(400).json({ message: "Start date cannot be after end date" });
+//     // }
+    
+
+//     // Calculate total days (inclusive)
+//     // const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+//     // // Calculate total payment
+//     // const totalPayment = totalDays * ratePerDay;
+
+//     // console.log("Calculated Total Days:", totalDays);
+//     // console.log("Calculated Total Payment:", totalPayment);
+
+//     try {
+//         // Generate QR Code
+//         const qrCodeData = JSON.stringify({
+//             applicantName,
+//             contactNumber,
+//             bannerLocation,
+//             bannerSize,
+//             startDate,
+//             endDate,
+//             ratePerDay,
+//             totalDays,
+//             totalPayment,
+//         });
+
+//         const qrCodeImagePath = path.join(qrCodeDir, `${Date.now()}_qrcode.png`);
+//         await QRCode.toFile(qrCodeImagePath, qrCodeData, {
+//             type: "png",
+//             width: 300,
+//             errorCorrectionLevel: "H",
+//         });
+
+//         console.log("QR Code saved at:", qrCodeImagePath);
+
+//         // Insert Data into MySQL
+//         const query = `
+//             INSERT INTO banner_form 
+//             (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day,total_days, total_payment, status)
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+
+//         db.execute(
+//             query,
+//             [
+//                 applicantName,
+//                 contactNumber,
+//                 bannerLocation,
+//                 bannerSize,
+//                 startDate,
+//                 endDate,
+//                 ratePerDay,
+//                 totalDays,
+//                 totalPayment,
+//                 "pending", // Default status
+//             ],
+//             (err, result) => {
+//                 if (err) {
+//                     console.error("Failed to insert data:", err.message);
+//                     return res.status(500).json({ message: "Error storing form data" });
+//                 }
+
+//                 res.json({
+//                     message: "Form submitted successfully!",
+//                     totalDays,
+//                     totalPayment,
+//                 });
+//             }
+//         );
+//     } catch (error) {
+//         console.error("Error generating QR Code or inserting data:", error.message);
+//         res.status(500).json({ message: "Failed to process form submission" });
+//     }
+// });
+
+
+// // Serve QR Code Images
+// app.use("/qrcodes", express.static(qrCodeDir));
+
+// // Start the Server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+				Latest Code
+
+
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const mysql = require("mysql2");
+const QRCode = require("qrcode");
+const fs = require("fs");
+const path = require("path");
+
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// MySQL Database Connection
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",           // Replace with your MySQL username
+    password: "Mansi@26",   // Replace with your MySQL password
+    database: "bannerDB",   // Replace with your database name
+});
+
+// Connect to MySQL
+db.connect(err => {
+    if (err) {
+        console.error("Database connection failed:", err.message);
+        return;
+    }
+    console.log("Connected to MySQL database.");
+});
+
+// Directory to store QR code images
+const qrCodeDir = path.join(__dirname, "qrcodes");
+if (!fs.existsSync(qrCodeDir)) {
+    try {
+        fs.mkdirSync(qrCodeDir, { recursive: true });
+        console.log("Directory 'qrcodes' created successfully.");
+    } catch (error) {
+        console.error("Error creating directory:", error);
+    }
+} else {
+    console.log("Directory 'qrcodes' already exists.");
+}
+
+// Endpoint: Submit Form
+app.post("/submit-form", async (req, res) => {
+    console.log("Form Data Received:", req.body);
+
+    const {
+        applicantName,
+        contactNumber,
+        bannerLocation,
+        bannerSize,
+        startDate,
+        endDate,
+        ratePerDay,
+    } = req.body;
+
+    // Validate Input
+    if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Validate Dates
+    if (isNaN(start) || isNaN(end)) {
+        return res.status(400).json({ message: "Invalid date format" });
+    }
+    if (start > end) {
+        return res.status(400).json({ message: "Start date cannot be after end date" });
+    }
+
+    // Calculate Total Days and Payment
+    const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const totalPayment = totalDays * ratePerDay;
+
+    console.log("Calculated Total Days:", totalDays);
+    console.log("Calculated Total Payment:", totalPayment);
+})
+
+    app.post("/submit-form", async (req, res) => {
+    console.log("Form Data Received:", req.body);
+    
+        const {
+            applicantName,
+            contactNumber,
+            bannerLocation,
+            bannerSize,
+            startDate,
+            endDate,
+            ratePerDay,
+        } = req.body;
+    try {
+        // Generate QR Code
+        const qrCodeData = JSON.stringify({
+            applicantName,
+            contactNumber,
+            bannerLocation,
+            bannerSize,
+            startDate,
+            endDate,
+            ratePerDay,
+            totalDays,
+            totalPayment,
+        });
+
+        const qrCodeImagePath = path.join(qrCodeDir, `${Date.now()}_qrcode.png`);
+        await QRCode.toFile(qrCodeImagePath, qrCodeData, {
+            type: "png",
+            width: 300,
+            errorCorrectionLevel: "H",
+        });
+
+        console.log("QR Code saved at:", qrCodeImagePath);
+
+        // Insert Data into MySQL
+        const query = `
+            INSERT INTO banner_form 
+            (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.execute(
+            query,
+            [
+                applicantName,
+                contactNumber,
+                bannerLocation,
+                bannerSize,
+                startDate,
+                endDate,
+                ratePerDay,
+                totalDays,
+                totalPayment,
+                "pending", // Default status
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Failed to insert data:", err.message);
+                    return res.status(500).json({ message: "Error storing form data" });
+                }
+
+                res.json({
+                    message: "Form submitted successfully!",
+                    totalDays,
+                    totalPayment,
+                    qrCodePath: `/qrcodes/${path.basename(qrCodeImagePath)}`,
+                });
+            }
+        );
+    } catch (error) {
+        console.error("Error generating QR Code or inserting data:", error.message);
+        res.status(500).json({ message: "Failed to process form submission" });
+    }
+});
+
+// Serve QR Code Images
+app.use("/qrcodes", express.static(qrCodeDir));
+
+// Start the Server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+10/1/2025
+// // // const express = require("express");
+// // // const bodyParser = require("body-parser");
+// // // const cors = require("cors");
+// // // const mysql = require("mysql2");
+// // // const QRCode = require("qrcode");
+// // // const fs = require("fs");
+// // // const path = require("path");
+
+// // // const app = express();
+// // // const PORT = 3000;
+
+// // // // Middleware
+// // // app.use(cors());
+// // // app.use(bodyParser.json());
+
+// // // // MySQL Database Connection
+// // // const db = mysql.createConnection({
+// // //     host: "localhost",
+// // //     user: "root",           // Replace with your MySQL username
+// // //     password: "Mansi@26",   // Replace with your MySQL password
+// // //     database: "bannerDB",   // Replace with your database name
+// // // });
+
+// // // // Connect to MySQL
+// // // db.connect(err => {
+// // //     if (err) {
+// // //         console.error("Database connection failed:", err.message);
+// // //         return;
+// // //     }
+// // //     console.log("Connected to MySQL database.");
+// // // });
+
+// // // // Directory to store QR code images
+// // // const qrCodeDir = path.join(__dirname, "qrcodes");
+// // // if (!fs.existsSync(qrCodeDir)) {
+// // //     try {
+// // //         fs.mkdirSync(qrCodeDir, { recursive: true });
+// // //         console.log("Directory 'qrcodes' created successfully.");
+// // //     } catch (error) {
+// // //         console.error("Error creating directory:", error);
+// // //     }
+// // // } else {
+// // //     console.log("Directory 'qrcodes' already exists.");
+// // // }
+
+// // // // Endpoint: Submit Form
+// // // app.post("/submit-form", async (req, res) => {
+// // //     console.log("Form Data Received:", req.body);
+
+// // //     const {
+// // //         applicantName,
+// // //         contactNumber,
+// // //         bannerLocation,
+// // //         bannerSize,
+// // //         startDate,
+// // //         endDate,
+// // //         ratePerDay,
+// // //     } = req.body;
+
+// // //     // Validate Input
+// // //     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+// // //         return res.status(400).json({ message: "All fields are required" });
+// // //     }
+
+// // //     const start = new Date(startDate);
+// // //     const end = new Date(endDate);
+
+// // //     // Validate Dates
+// // //     if (isNaN(start) || isNaN(end)) {
+// // //         return res.status(400).json({ message: "Invalid date format" });
+// // //     }
+// // //     if (start > end) {
+// // //         return res.status(400).json({ message: "Start date cannot be after end date" });
+// // //     }
+
+// // //     // Calculate Total Days and Payment
+// // //     const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+// // //     const totalPayment = totalDays * ratePerDay;
+
+// // //     console.log("Calculated Total Days:", totalDays);
+// // //     console.log("Calculated Total Payment:", totalPayment);
+// // // })
+
+// // //     app.post("/submit-form", async (req, res) => {
+// // //     console.log("Form Data Received:", req.body);
+    
+// // //         const {
+// // //             applicantName,
+// // //             contactNumber,
+// // //             bannerLocation,
+// // //             bannerSize,
+// // //             startDate,
+// // //             endDate,
+// // //             ratePerDay,
+// // //         } = req.body;
+// // //     try {
+// // //         // Generate QR Code
+// // //         const qrCodeData = JSON.stringify({
+// // //             applicantName,
+// // //             contactNumber,
+// // //             bannerLocation,
+// // //             bannerSize,
+// // //             startDate,
+// // //             endDate,
+// // //             ratePerDay,
+// // //             totalDays,
+// // //             totalPayment,
+// // //         });
+
+// // //         const qrCodeImagePath = path.join(qrCodeDir, `${Date.now()}_qrcode.png`);
+// // //         await QRCode.toFile(qrCodeImagePath, qrCodeData, {
+// // //             type: "png",
+// // //             width: 300,
+// // //             errorCorrectionLevel: "H",
+// // //         });
+
+// // //         console.log("QR Code saved at:", qrCodeImagePath);
+
+// // //         // Insert Data into MySQL
+// // //         const query = `
+// // //             INSERT INTO banner_form 
+// // //             (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status)
+// // //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+// // //         `;
+
+// // //         db.execute(
+// // //             query,
+// // //             [
+// // //                 applicantName,
+// // //                 contactNumber,
+// // //                 bannerLocation,
+// // //                 bannerSize,
+// // //                 startDate,
+// // //                 endDate,
+// // //                 ratePerDay,
+// // //                 totalDays,
+// // //                 totalPayment,
+// // //                 "pending", // Default status
+// // //             ],
+// // //             (err, result) => {
+// // //                 if (err) {
+// // //                     console.error("Failed to insert data:", err.message);
+// // //                     return res.status(500).json({ message: "Error storing form data" });
+// // //                 }
+
+// // //                 res.json({
+// // //                     message: "Form submitted successfully!",
+// // //                     totalDays,
+// // //                     totalPayment,
+// // //                     qrCodePath: `/qrcodes/${path.basename(qrCodeImagePath)}`,
+// // //                 });
+// // //             }
+// // //         );
+// // //     } catch (error) {
+// // //         console.error("Error generating QR Code or inserting data:", error.message);
+// // //         res.status(500).json({ message: "Failed to process form submission" });
+// // //     }
+// // // });
+
+// // // // Serve QR Code Images
+// // // app.use("/qrcodes", express.static(qrCodeDir));
+
+// // // // Start the Server
+// // // app.listen(PORT, () => {
+// // //     console.log(`Server is running on http://localhost:${PORT}`);
+// // // });
+// // const express = require("express");
+// // const bodyParser = require("body-parser");
+// // const cors = require("cors");
+// // const mysql = require("mysql2");
+// // const QRCode = require("qrcode");
+// // const fs = require("fs");
+// // const path = require("path");
+
+// // const app = express();
+// // const PORT = 3000;
+
+// // // Middleware
+// // app.use(cors());
+// // app.use(bodyParser.json());
+
+// // // MySQL Database Connection
+// // const db = mysql.createConnection({
+// //     host: "localhost",
+// //     user: "root",           // Replace with your MySQL username
+// //     password: "Mansi@26",   // Replace with your MySQL password
+// //     database: "bannerDB",   // Replace with your database name
+// // });
+
+// // // Connect to MySQL
+// // db.connect(err => {
+// //     if (err) {
+// //         console.error("Database connection failed:", err.message);
+// //         return;
+// //     }
+// //     console.log("Connected to MySQL database.");
+// // });
+
+// // // Directory to store QR code images
+// // const qrCodeDir = path.join(__dirname, "qrcodes");
+// // if (!fs.existsSync(qrCodeDir)) {
+// //     try {
+// //         fs.mkdirSync(qrCodeDir, { recursive: true });
+// //         console.log("Directory 'qrcodes' created successfully.");
+// //     } catch (error) {
+// //         console.error("Error creating directory:", error);
+// //     }
+// // } else {
+// //     console.log("Directory 'qrcodes' already exists.");
+// // }
+
+// // // Endpoint: Submit Form
+// // app.post("/submit-form", async (req, res) => {
+// //     console.log("Form Data Received:", req.body);
+
+// //     const {
+// //         applicantName,
+// //         contactNumber,
+// //         bannerLocation,
+// //         bannerSize,
+// //         startDate,
+// //         endDate,
+// //         ratePerDay,
+// //     } = req.body;
+
+// //     // Validate Input
+// //     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+// //         return res.status(400).json({ message: "All fields are required" });
+// //     }
+
+// //     const start = new Date(startDate);
+// //     const end = new Date(endDate);
+
+// //     // Validate Dates
+// //     if (isNaN(start) || isNaN(end)) {
+// //         return res.status(400).json({ message: "Invalid date format" });
+// //     }
+// //     if (start > end) {
+// //         return res.status(400).json({ message: "Start date cannot be after end date" });
+// //     }
+
+// //     // Calculate Total Days and Payment
+// //     const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+// //     const totalPayment = totalDays * ratePerDay;
+
+// //     console.log("Calculated Total Days:", totalDays);
+// //     console.log("Calculated Total Payment:", totalPayment);
+
+// //     try {
+// //         // Generate QR Code
+// //         const qrCodeData = JSON.stringify({
+// //             applicantName,
+// //             contactNumber,
+// //             bannerLocation,
+// //             bannerSize,
+// //             startDate,
+// //             endDate,
+// //             ratePerDay,
+// //             totalDays,
+// //             totalPayment,
+// //             status: "pending", // Initial permission status
+// //         });
+
+// //         const qrCodeImagePath = path.join(qrCodeDir, `${Date.now()}_qrcode.png`);
+// //         await QRCode.toFile(qrCodeImagePath, qrCodeData, {
+// //             type: "png",
+// //             width: 300,
+// //             errorCorrectionLevel: "H",
+// //         });
+
+// //         console.log("QR Code saved at:", qrCodeImagePath);
+
+// //         // Insert Data into MySQL
+// //         const query = `
+// //             INSERT INTO banner_form 
+// //             (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status)
+// //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+// //         `;
+
+// //         db.execute(
+// //             query,
+// //             [
+// //                 applicantName,
+// //                 contactNumber,
+// //                 bannerLocation,
+// //                 bannerSize,
+// //                 startDate,
+// //                 endDate,
+// //                 ratePerDay,
+// //                 totalDays,
+// //                 totalPayment,
+// //                 "pending", // Default status
+// //             ],
+// //             (err, result) => {
+// //                 if (err) {
+// //                     console.error("Failed to insert data:", err.message);
+// //                     return res.status(500).json({ message: "Error storing form data" });
+// //                 }
+
+// //                 res.json({
+// //                     message: "Form submitted successfully!",
+// //                     totalDays,
+// //                     totalPayment,
+// //                     qrCodePath: `/qrcodes/${path.basename(qrCodeImagePath)}`,
+// //                 });
+// //             }
+// //         );
+// //     } catch (error) {
+// //         console.error("Error generating QR Code or inserting data:", error.message);
+// //         res.status(500).json({ message: "Failed to process form submission" });
+// //     }
+// // });
+
+// // // Endpoint: Update Permission Status
+// // app.put("/update-status/:id", (req, res) => {
+// //     const { id } = req.params;
+// //     const { status } = req.body;
+
+// //     // Validate Status
+// //     if (!["pending", "approved", "rejected"].includes(status)) {
+// //         return res.status(400).json({ message: "Invalid status" });
+// //     }
+
+// //     const query = `UPDATE banner_form SET status = ? WHERE id = ?`;
+// //     db.execute(query, [status, id], (err, result) => {
+// //         if (err) {
+// //             console.error("Failed to update status:", err.message);
+// //             return res.status(500).json({ message: "Error updating status" });
+// //         }
+
+// //         if (result.affectedRows === 0) {
+// //             return res.status(404).json({ message: "Form not found" });
+// //         }
+
+// //         res.json({ message: "Status updated successfully", status });
+// //     });
+// // });
+
+// // // Serve QR Code Images
+// // app.use("/qrcodes", express.static(qrCodeDir));
+
+// // // Start the Server
+// // app.listen(PORT, () => {
+// //     console.log(`Server is running on http://localhost:${PORT}`);
+// // });
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const cors = require("cors");
+// const mysql = require("mysql2");
+// const QRCode = require("qrcode");
+// const fs = require("fs");
+// const path = require("path");
+
+// const app = express();
+// const PORT = 3000;
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json());
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "Mansi@26",
+//     database: "bannerDB",
+// });
+
+// // Connect to MySQL
+// db.connect(err => {
+//     if (err) {
+//         console.error("Database connection failed:", err.message);
+//         return;
+//     }
+//     console.log("Connected to MySQL database.");
+// });
+
+// // Directory to store QR code images
+// const qrCodeDir = path.join(__dirname, "qrcodes");
+// if (!fs.existsSync(qrCodeDir)) {
+//     fs.mkdirSync(qrCodeDir, { recursive: true });
+//     console.log("Directory 'qrcodes' created successfully.");
+// } else {
+//     console.log("Directory 'qrcodes' already exists.");
+// }
+
+// // Endpoint: Submit Form
+// app.post("/submit-form", (req, res) => {
+//     const {
+//         applicantName,
+//         contactNumber,
+//         bannerLocation,
+//         bannerSize,
+//         startDate,
+//         endDate,
+//         ratePerDay,
+//     } = req.body;
+
+//     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+//         return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const start = new Date(startDate);
+//     const end = new Date(endDate);
+
+//     if (isNaN(start) || isNaN(end) || start > end) {
+//         return res.status(400).json({ message: "Invalid date range" });
+//     }
+
+//     const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+//     const totalPayment = totalDays * ratePerDay;
+
+//     const query = `
+//         INSERT INTO banner_form 
+//         (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status)
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+//     `;
+
+//     db.execute(
+//         query,
+//         [applicantName, contactNumber, bannerLocation, bannerSize, startDate, endDate, ratePerDay, totalDays, totalPayment],
+//         (err, result) => {
+//             if (err) {
+//                 console.error("Failed to insert data:", err.message);
+//                 return res.status(500).json({ message: "Error storing form data" });
+//             }
+
+//             res.json({ message: "Form submitted successfully!", id: result.insertId });
+//         }
+//     );
+// });
+
+// // Endpoint: Update Permission Status
+// app.put("/update-status/:id", (req, res) => {
+//     const { id } = req.params;
+//     const { status } = req.body;
+
+//     if (!["pending", "approved", "rejected"].includes(status)) {
+//         return res.status(400).json({ message: "Invalid status value" });
+//     }
+
+//     const query = `UPDATE banner_form SET status = ? WHERE id = ?`;
+
+//     db.execute(query, [status, id], (err, result) => {
+//         if (err) {
+//             console.error("Failed to update status:", err.message);
+//             return res.status(500).json({ message: "Error updating status" });
+//         }
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ message: "Record not found" });
+//         }
+
+//         res.json({ message: "Status updated successfully!" });
+//     });
+// });
+
+// // Endpoint: Generate QR Code
+// app.get("/generate-qrcode/:id", async (req, res) => {
+//     const { id } = req.params;
+
+//     const query = `SELECT * FROM banner_form WHERE id = ?`;
+
+//     db.execute(query, [id], async (err, results) => {
+//         if (err) {
+//             console.error("Failed to fetch data:", err.message);
+//             return res.status(500).json({ message: "Error fetching data" });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: "Record not found" });
+//         }
+
+//         const record = results[0];
+//         try {
+//             const qrCodeData = JSON.stringify({
+//                 applicantName: record.applicant_name,
+//                 contactNumber: record.contact_number,
+//                 bannerLocation: record.banner_location,
+//                 bannerSize: record.banner_size,
+//                 startDate: record.start_date,
+//                 endDate: record.end_date,
+//                 ratePerDay: record.rate_per_day,
+//                 totalDays: record.total_days,
+//                 totalPayment: record.total_payment,
+//                 status: record.status,
+//             });
+
+//             const qrCodeImagePath = path.join(qrCodeDir, `${id}_qrcode.png`);
+//             await QRCode.toFile(qrCodeImagePath, qrCodeData, {
+//                 type: "png",
+//                 width: 300,
+//                 errorCorrectionLevel: "H",
+//             });
+
+//             res.json({
+//                 message: "QR Code generated successfully!",
+//                 qrCodePath: `/qrcodes/${path.basename(qrCodeImagePath)}`,
+//             });
+//         } catch (error) {
+//             console.error("Error generating QR Code:", error.message);
+//             res.status(500).json({ message: "Failed to generate QR Code" });
+//         }
+//     });
+// });
+
+// // Serve QR Code Images
+// app.use("/qrcodes", express.static(qrCodeDir));
+
+// // Start the Server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const cors = require("cors");
+// const mysql = require("mysql2");
+// const QRCode = require("qrcode");
+// const fs = require("fs");
+// const path = require("path");
+// const crypto = require("crypto");
+// const axios = require("axios");
+
+// const app = express();
+// const PORT = 3000;
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json());
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",           // Replace with your MySQL username
+//     password: "Mansi@26",   // Replace with your MySQL password
+//     database: "bannerDB",   // Replace with your database name
+// });
+
+// // Connect to MySQL
+// db.connect(err => {
+//     if (err) {
+//         console.error("Database connection failed:", err.message);
+//         return;
+//     }
+//     console.log("Connected to MySQL database.");
+// });
+
+// // Directory to store QR code images
+// const qrCodeDir = path.join(__dirname, "qrcodes");
+// if (!fs.existsSync(qrCodeDir)) {
+//     fs.mkdirSync(qrCodeDir, { recursive: true });
+// }
+
+// // PhonePe Configuration
+// const phonePeConfig = {
+//     merchantId: "tejaljamadar14@axl",    // Replace with your PhonePe Merchant ID
+//     // saltKey: "YOUR_SALT_KEY",          // Replace with your Salt Key
+//     baseUrl: "https://api.phonepe.com", // Replace with the sandbox or production URL
+//     callbackUrl: "http://localhost:3000/payment-status",
+// };
+
+// // Submit Form
+// app.post("/submit-form", (req, res) => {
+//     const {
+//         applicantName,
+//         contactNumber,
+//         bannerLocation,
+//         bannerSize,
+//         startDate,
+//         endDate,
+//         ratePerDay,
+//     } = req.body;
+
+//     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+//         return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const start = new Date(startDate);
+//     const end = new Date(endDate);
+
+//     if (isNaN(start) || isNaN(end)) {
+//         return res.status(400).json({ message: "Invalid date format" });
+//     }
+
+//     if (start > end) {
+//         return res.status(400).json({ message: "Start date cannot be after end date" });
+//     }
+
+//     const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+//     const totalPayment = totalDays * ratePerDay;
+
+//     const query = `
+//         INSERT INTO banner_form 
+//         (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status)
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//     db.execute(
+//         query,
+//         [
+//             applicantName,
+//             contactNumber,
+//             bannerLocation,
+//             bannerSize,
+//             startDate,
+//             endDate,
+//             ratePerDay,
+//             totalDays,
+//             totalPayment,
+//             "pending", // Default status
+//         ],
+//         (err, result) => {
+//             if (err) {
+//                 console.error("Failed to insert data:", err.message);
+//                 return res.status(500).json({ message: "Error storing form data" });
+//             }
+
+//             res.json({ message: "Form submitted successfully!", id: result.insertId, totalPayment });
+//         }
+//     );
+// });
+
+// // Make Payment
+// app.post("/make-payment", async (req, res) => {
+//     const { id } = req.body;
+
+//     // Fetch payment details from the database
+//     const fetchQuery = "SELECT * FROM banner_form WHERE id = ?";
+//     db.execute(fetchQuery, [id], async (err, rows) => {
+//         if (err || rows.length === 0) {
+//             console.error("Failed to fetch data:", err?.message);
+//             return res.status(404).json({ message: "Record not found" });
+//         }
+
+//         const record = rows[0];
+
+//         const paymentData = {
+//             merchantId: phonePeConfig.merchantId,
+//             transactionId: `TXN_${Date.now()}`,
+//             amount: record.total_payment * 100, // Amount in paise
+//             merchantUserId: record.contact_number,
+//             callbackUrl: phonePeConfig.callbackUrl,
+//         };
+
+//         // Generate digital signature
+//         const signatureString = `/pg/v1/pay${JSON.stringify(paymentData)}${phonePeConfig.saltKey}`;
+//         const signature = crypto.createHash("sha256").update(signatureString).digest("hex");
+
+//         try {
+//             const response = await axios.post(
+//                 `${phonePeConfig.baseUrl}/pg/v1/pay`,
+//                 paymentData,
+//                 {
+//                     headers: {
+//                         "Content-Type": "application/json",
+//                         "X-VERIFY": `${signature}###${phonePeConfig.saltKey}`,
+//                     },
+//                 }
+//             );
+
+//             res.json({ message: "Payment initiated", paymentUrl: response.data.paymentUrl });
+//         } catch (error) {
+//             console.error("Error initiating payment:", error.message);
+//             res.status(500).json({ message: "Payment initiation failed" });
+//         }
+//     });
+// });
+
+// // Payment Status Callback
+// app.post("/payment-status", (req, res) => {
+//     const { transactionId, status } = req.body;
+
+//     const updateQuery = "UPDATE banner_form SET status = ? WHERE id = ?";
+//     const newStatus = status === "SUCCESS" ? "approved" : "rejected";
+
+//     db.execute(updateQuery, [newStatus, transactionId], (err) => {
+//         if (err) {
+//             console.error("Failed to update status:", err.message);
+//             return res.status(500).json({ message: "Failed to update payment status" });
+//         }
+
+//         res.json({ message: "Payment status updated successfully!" });
+//     });
+// });
+
+// // Serve QR Code Images
+// app.use("/qrcodes", express.static(qrCodeDir));
+
+// // Start the Server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const cors = require("cors");
+// const mysql = require("mysql2");
+// const QRCode = require("qrcode");
+// const fs = require("fs");
+// const path = require("path");
+
+// const app = express();
+// const PORT = 3000;
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json());
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "Mansi@26",
+//     database: "bannerDB",
+// });
+
+// // Connect to MySQL
+// db.connect(err => {
+//     if (err) {
+//         console.error("Database connection failed:", err.message);
+//         return;
+//     }
+//     console.log("Connected to MySQL database.");
+// });
+
+// // Directory to store QR code images
+// const qrCodeDir = path.join(__dirname, "qrcodes");
+// if (!fs.existsSync(qrCodeDir)) {
+//     fs.mkdirSync(qrCodeDir, { recursive: true });
+// }
+
+// // Endpoint: Submit Form
+// app.post("/submit-form", (req, res) => {
+//     const {
+//         applicantName,
+//         contactNumber,
+//         bannerLocation,
+//         bannerSize,
+//         startDate,
+//         endDate,
+//         ratePerDay,
+//     } = req.body;
+
+//     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+//         return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const totalDays = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+//     const totalPayment = totalDays * ratePerDay;
+
+//     const query = `
+//         INSERT INTO banner_form 
+//         (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status) 
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//     db.execute(query, [applicantName, contactNumber, bannerLocation, bannerSize, startDate, endDate, ratePerDay, totalDays, totalPayment, "pending"], (err, result) => {
+//         if (err) {
+//             console.error("Failed to insert data:", err.message);
+//             return res.status(500).json({ message: "Error storing form data" });
+//         }
+
+//         res.json({ message: "Form submitted successfully!", id: result.insertId, totalPayment });
+//     });
+// });
+
+// // Endpoint: Make Payment
+// app.post("/make-payment", (req, res) => {
+//     const { id } = req.body;
+
+//     const query = `SELECT * FROM banner_form WHERE id = ?`;
+//     db.execute(query, [id], (err, rows) => {
+//         if (err || rows.length === 0) {
+//             console.error("Failed to fetch data:", err?.message || "No record found");
+//             return res.status(404).json({ message: "Form not found" });
+//         }
+
+//         // Mock payment response
+//         const paymentUrl = `https://mock-payment-gateway.com/pay/${id}`;
+//         res.json({ paymentUrl });
+//     });
+// });
+
+// // Endpoint: Update Permission Status
+// app.post("/update-status", (req, res) => {
+//     const { id, status } = req.body;
+
+//     const query = `UPDATE banner_form SET status = ? WHERE id = ?`;
+//     db.execute(query, [status, id], (err, result) => {
+//         if (err || result.affectedRows === 0) {
+//             console.error("Failed to update status:", err?.message || "No record updated");
+//             return res.status(500).json({ message: "Failed to update status" });
+//         }
+
+//         res.json({ message: "Status updated successfully!" });
+//     });
+// });
+
+// // Endpoint: Generate QR Code
+// app.get("/generate-qr/:id", (req, res) => {
+//     const { id } = req.params;
+
+//     const query = `SELECT * FROM banner_form WHERE id = ?`;
+//     db.execute(query, [id], async (err, rows) => {
+//         if (err || rows.length === 0) {
+//             console.error("Failed to fetch data:", err?.message || "No record found");
+//             return res.status(404).json({ message: "Form not found" });
+//         }
+
+//         const qrData = rows[0];
+
+//         // Check if payment has been made
+//         if (!formData.payment_id || formData.payment_status !== "Paid") {
+//             return res.status(400).json({ 
+//                 message: "Payment not completed. QR code cannot be generated." 
+//             });
+//         }
+
+//          // Save QR Code as a file
+//         const qrCodeImagePath = path.join(qrCodeDir, `${id}_qrcode.png`);
+
+//         try {
+//             await QRCode.toFile(qrCodeImagePath, JSON.stringify(qrData), {
+//                 type: "png",
+//                 width: 300,
+//                 errorCorrectionLevel: "H",
+//             });
+//             res.sendFile(qrCodeImagePath);
+//         } catch (error) {
+//             console.error("Failed to generate QR Code:", error.message);
+//             res.status(500).json({ message: "Failed to generate QR Code" });
+//         }
+//     });
+// });
+
+// // Serve QR Code Images
+// app.use("/qrcodes", express.static(qrCodeDir));
+
+// // Start the Server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const cors = require("cors");
+// const mysql = require("mysql2");
+// const QRCode = require("qrcode");
+// const fs = require("fs");
+// const path = require("path");
+
+// const app = express();
+// const PORT = 3000;
+
+// // Middleware
+// app.use(cors());
+// app.use(bodyParser.json());
+
+// // MySQL Database Connection
+// const db = mysql.createConnection({
+//     host: "localhost",
+//     user: "root",
+//     password: "Mansi@26",
+//     database: "bannerDB",
+// });
+
+// // Connect to MySQL
+// db.connect(err => {
+//     if (err) {
+//         console.error("Database connection failed:", err.message);
+//         process.exit(1); // Exit if the database connection fails
+//     }
+//     console.log("Connected to MySQL database.");
+// });
+
+// // Directory to store QR code images
+// const qrCodeDir = path.join(__dirname, "qrcodes");
+// if (!fs.existsSync(qrCodeDir)) {
+//     fs.mkdirSync(qrCodeDir, { recursive: true });
+// }
+
+// // Endpoint: Submit Form
+// app.post("/submit-form", (req, res) => {
+//     const {
+//         applicantName,
+//         contactNumber,
+//         bannerLocation,
+//         bannerSize,
+//         startDate,
+//         endDate,
+//         ratePerDay,
+//     } = req.body;
+
+//     if (!applicantName || !contactNumber || !bannerLocation || !bannerSize || !startDate || !endDate || !ratePerDay) {
+//         return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const totalDays = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+//     const totalPayment = totalDays * ratePerDay;
+
+//     const query = `
+//         INSERT INTO banner_form 
+//         (applicant_name, contact_number, banner_location, banner_size, start_date, end_date, rate_per_day, total_days, total_payment, status) 
+//         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//     db.execute(query, [applicantName, contactNumber, bannerLocation, bannerSize, startDate, endDate, ratePerDay, totalDays, totalPayment, "pending"], (err, result) => {
+//         if (err) {
+//             console.error("Failed to insert data:", err.message);
+//             return res.status(500).json({ message: "Error storing form data" });
+//         }
+
+//         res.json({ message: "Form submitted successfully!", id: result.insertId, totalPayment });
+//     });
+// });
+
+// // Endpoint: Make Payment
+// app.post("/make-payment", (req, res) => {
+//     const { id } = req.body;
+
+//     if (!id) {
+//         return res.status(400).json({ message: "ID is required" });
+//     }
+
+//     const query = `SELECT * FROM banner_form WHERE id = ?`;
+//     db.execute(query, [id], (err, rows) => {
+//         if (err) {
+//             console.error("Failed to fetch data:", err.message);
+//             return res.status(500).json({ message: "Error retrieving data" });
+//         }
+
+//         if (rows.length === 0) {
+//             return res.status(404).json({ message: "Form not found" });
+//         }
+
+//         // Mock payment response
+//         const paymentUrl = `https://mock-payment-gateway.com/pay/${id}`;
+//         res.json({ paymentUrl });
+//     });
+// });
+
+// // Endpoint: Update Permission Status
+// app.post("/update-status", (req, res) => {
+//     const { id, status } = req.body;
+
+//     if (!id || !status) {
+//         return res.status(400).json({ message: "ID and status are required" });
+//     }
+
+//     const query = `UPDATE banner_form SET status = ? WHERE id = ?`;
+//     db.execute(query, [status, id], (err, result) => {
+//         if (err) {
+//             console.error("Failed to update status:", err.message);
+//             return res.status(500).json({ message: "Error updating status" });
+//         }
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ message: "Form not found" });
+//         }
+
+//         res.json({ message: "Status updated successfully!" });
+//     });
+// });
+
+// // Endpoint: Generate QR Code
+// app.get("/generate-qr/:id", (req, res) => {
+//     const { id } = req.params;
+
+//     if (!id) {
+//         return res.status(400).json({ message: "ID is required" });
+//     }
+
+//     const query = `SELECT * FROM banner_form WHERE id = ?`;
+//     db.execute(query, [id], async (err, rows) => {
+//         if (err) {
+//             console.error("Failed to fetch data:", err.message);
+//             return res.status(500).json({ message: "Error retrieving data" });
+//         }
+
+//         if (rows.length === 0) {
+//             return res.status(404).json({ message: "Form not found" });
+//         }
+
+//         const formData = rows[0];
+
+//         // Check if payment has been made
+//         if (formData.status !== "Paid") {
+//             return res.status(400).json({ message: "Payment not completed. QR code cannot be generated." });
+//         }
+
+//         // Save QR Code as a file
+//         const qrCodeImagePath = path.join(qrCodeDir, `${id}_qrcode.png`);
+
+//         try {
+//             await QRCode.toFile(qrCodeImagePath, JSON.stringify(formData), {
+//                 type: "png",
+//                 width: 300,
+//                 errorCorrectionLevel: "H",
+//             });
+//             res.sendFile(qrCodeImagePath);
+//         } catch (error) {
+//             console.error("Failed to generate QR Code:", error.message);
+//             res.status(500).json({ message: "Failed to generate QR Code" });
+//         }
+//     });
+// });
+
+// // Serve QR Code Images
+// app.use("/qrcodes", express.static(qrCodeDir));
+
+// // Start the Server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+html code
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner Permission Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Banner Permission Form</h1>
+        <form action="" id="bannerForm">
+            <label for="applicantName">Applicant Name:</label>
+            <input type="text" id="applicantName" name="applicantName" required>
+
+            <label for="contactNumber">Contact Number:</label>
+            <input type="tel" id="contactNumber" name="contactNumber" required>   
+            
+            <label for="bannerLocation">Banner Location:</label>
+            <input type="text" id="bannerLocation" name="bannerLocation" required>
+
+            <label for="bannerSize">Banner Size (in sq.ft.):</label>
+            <input type="number" id="bannerSize" name="bannerSize" required>
+
+            <label for="startdate">Start Date:</label>
+            <input type="date" id="startDate" name="startDate" required>
+
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" name="endDate" required>
+
+            <label for="ratePerDay">Rate Per day (rs.):</label>
+            <input type="number" id="ratePerDay" name="ratePerDay" value="100" required>
+
+            <button id="Calculatepayment" type="button" onclick="calculatePayment()">Calculate Payment</button>
+            <button id="payNow" type="submit">Pay Now</button>
+            <button id ="submitbutton" type="submit">Submit and Generate QR Code</button>
+        </form>
+        <div class="output" id="output"></div>
+        <div class= ""id="qrcode"></div>
+    </div>
+    <script src="script.js"></script>
+    <script src="submit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+</body>
+</html> -->
+
+css 
+/* body{
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+}
+.container{
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+h1{
+    text-align: center;
+    color: #333;
+}
+label{
+    display: block;
+    margin: 15px 0 5px;
+    font-weight: bold;
+    color: #555;
+}
+input, select{
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+#Calculatepayment{
+    width: 100%;
+    padding: 10px;
+    background: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+#Calculatepayment:hover{
+    background: #4cae4c;
+}
+.output{
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+.qr-code {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#submitbutton{
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+#submitbutton:hover{
+    background: #4cae4c;
+}
+#payNow{
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+#payNow:hover{
+    background: #4cae4c;
+} */
